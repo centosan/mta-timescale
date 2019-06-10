@@ -79,14 +79,17 @@ CONNECTION = os.environ['MTA_CONNECTION']
 
 # Global config
 # Using http://bustime.mta.info/wiki/Developers/Index
-URL = f"http://gtfsrt.prod.obanyc.com/vehiclePositions?key={API_KEY}"
+URL = "http://gtfsrt.prod.obanyc.com/vehiclePositions?key=" + API_KEY
 POLLING_INTERVAL = 85  # seconds
 requests_cache.install_cache('.gtfs-cache', expire_after=timedelta(seconds=POLLING_INTERVAL))
 
 
 if __name__ == "__main__":
     with psycopg2.connect(CONNECTION) as conn:
-        while True:
+        cursor = conn.cursor()
+	cursor.execute('CREATE TABLE IF NOT EXISTS mta (vid VARCHAR, time TIMESTAMP, route_id VARCHAR, bearing VARCHAR, geom VARCHAR);')
+	conn.commit()
+	while True:
             with conn.cursor() as cursor:
                 response = requests.get(URL)
                 feed = gtfs.FeedMessage()
@@ -103,5 +106,5 @@ if __name__ == "__main__":
                 end = time.time()
 
                 nrows = len(feed.entity)
-                print(f"INSERTED {nrows} rows at {end}, (elapsed: {end - start})")
+                print("INSERTED {nrows} rows at {end}, (elapsed: {end - start})")
                 time.sleep(POLLING_INTERVAL)
