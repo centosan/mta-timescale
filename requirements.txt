@@ -2,3 +2,4 @@ gtfs-realtime-bindings
 requests
 requests-cache
 psycopg2
+psycopg2-binary
